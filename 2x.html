@@ -4,6 +4,13 @@
 <title>Dribbble2x - Dribbble @2x Viewer(Alpha)</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
 <script src="jribbble.js" type="text/javascript"></script>
+<style>
+	#shotById {
+		position: fixed;
+		top: 10px;
+		right: 10px;
+	}
+</style>
 </head>
 <body>
 <div class='body'>
@@ -13,25 +20,35 @@
     Loading..
   </div>
 </div>
+<div id='shotById'>
+	<a>
+		<img alt="" />
+	</a>
+	<h3></h3>
+	<h4></h4>
+	<ul></ul>
+</div>
 
 <script>
   var player = 'gilhyun';
-  var load_shot, load_state, page_state;
+  var get_player_shot_list, get_shot_detail, load_state, page_state;
   
+  // init
+  page_state = 1;
+  load_state = true;
+  
+  // Pageing
   jQuery(function() {
-    load_shot(player, '1');
+    get_player_shot_list(player, '1');
     return $(window).scroll(function() {
       if ($(window).scrollTop() === $(document).height() - $(window).height() && load_state) {
-        return load_shot(player, page_state);
+        return get_player_shot_list(player, page_state);
       }
     });
   });
   
-  page_state = 1;
-  
-  load_state = true;
-  
-  load_shot = function(player, page) {
+  // Load Player Shots
+  get_player_shot_list = function(player, page) {
     var callback;
     load_state = false;
     callback = function(listDetails) {
@@ -41,21 +58,12 @@
         html += "<li>";
         html += "  <div class='user'>";
         html += "    <a href='" + shot.player.url + "'>";
-        html += "      <img src='" + shot.player.avatar_url + "' class='avatar' alt='" + shot.player.name + "'>";
+        html += "      <img src='" + shot.player.avatar_url + "' width='20' class='avatar' alt='" + shot.player.name + "'>";
         html += "      by " + shot.player.name;
         html += "    </a>";
         html += "  </div>";
         html += "  <div class='shot size-" + shot.width + "'>";
-        html += "    <h3>" + shot.title + "</h3>";
-        html += "    <a href='" + shot.url + "'>";
-        html += "      <img src='" + shot.image_url + "' alt='" + shot.title + "'>";
-        html += "    </a>";
-        html += "    <ul class='info'>";
-        html += "      <li>Comments " + shot.comments_count + "</li>";
-        html += "      <li>Like " + shot.likes_count + "</li>";
-        html += "      <li>View " + shot.views_count + "</li>";
-        html += "      <li class='rebounds'>Rebounds " + shot.rebounds_count + "</li>";
-        html += "    </ul>";
+        html += "    <img onclick='get_shot_detail(" + shot.id + ")' src='" + shot.image_url + "' width='200' alt='" + shot.title + "'>";
         html += "  </div>";
         return html += "</li>";
       });
@@ -77,6 +85,25 @@
       per_page: 12
     });
     return page_state++;
+  };
+  
+  // Shot Detail
+  get_shot_detail = function(shot_id) {
+	  $.jribbble.getShotById(shot_id, function (shot) {
+      var html = [];
+
+      $('#shotById a:first').attr('href', shot.url);
+      $('#shotById img').attr('src', shot.image_url);
+      $('#shotById h3').text(shot.title);
+      $('#shotById h4').html('by <a href="' + shot.player.url + '">' + shot.player.name + '</a>');
+
+      html.push('<li><b>Views:</b> ' + shot.views_count + '</li>');
+      html.push('<li><b>Likes:</b> ' + shot.likes_count + '</li>');
+      html.push('<li><b>Comments:</b> ' + shot.comments_count + '</li>');
+      html.push('<li><b>Rebounds:</b> ' + shot.rebounds_count + '</li>');
+
+      $('#shotById ul').html(html.join(''));
+    });
   };
 </script>
 </body>
